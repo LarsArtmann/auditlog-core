@@ -126,7 +126,7 @@ func TestHub_NonBlockingOnFullBuffer(t *testing.T) {
 	sub := hub.Subscribe()
 
 	// Fill the buffer (128) + 200 more. OnEvent must never block.
-	for i := 0; i < 328; i++ {
+	for i := range 328 {
 		hub.OnEvent(testEvent(i))
 	}
 
