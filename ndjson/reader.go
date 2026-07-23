@@ -36,7 +36,6 @@ func Read[T any](reader io.Reader, validate func(lineNum int, v T) error) ([]T, 
 
 	var items []T
 
-	sawData := false
 	lineNum := 0
 
 	for scanner.Scan() {
@@ -46,8 +45,6 @@ func Read[T any](reader io.Reader, validate func(lineNum int, v T) error) ([]T, 
 		if len(bytes.TrimSpace(line)) == 0 {
 			continue
 		}
-
-		sawData = true
 
 		var item T
 
@@ -76,7 +73,7 @@ func Read[T any](reader io.Reader, validate func(lineNum int, v T) error) ([]T, 
 	}
 
 	if len(items) == 0 {
-		if !sawData {
+		if lineNum == 0 {
 			return nil, ErrEmpty
 		}
 

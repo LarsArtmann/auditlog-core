@@ -8,10 +8,13 @@ Zero-dependency shared infrastructure for audit log live dashboards. Used by
 ## Commands
 
 ```bash
-go test ./... -race          # run all tests (root + live/)
-go test ./... -count=1        # bypass test cache
-golangci-lint run ./...       # lint (now uses .golangci.yml matching sibling standards)
+GOEXPERIMENT=jsonv2 go test ./... -race   # run all tests (root + live/ + ndjson/ + loader/)
+go test ./... -count=1                     # bypass test cache
+GOEXPERIMENT=jsonv2 golangci-lint run ./... # lint (.golangci.yml)
 ```
+
+**GOEXPERIMENT=jsonv2 is required** — the `ndjson` and `loader` packages use
+`encoding/json/v2`. The root and `live` packages use standard `encoding/json`.
 
 No Makefile, no justfile, no flake.nix — pure `go` toolchain.
 
@@ -28,6 +31,8 @@ projects (`samber-do-auditlog`, `go-workflow-auditlog`) for local development.
 | --------------------- | ------------------------------------------------------------------------ |
 | `auditlogcore` (root) | File-write helpers (`WriteToFile`, `CheckNoClobber`) and sentinel errors |
 | `live`                | Generic SSE hub + HTTP dashboard server                                  |
+| `ndjson`              | Generic NDJSON reader (`ndjson.Read[T]`) using `encoding/json/v2`        |
+| `loader`              | Format detection (`loader.Detect`) — JSON report vs NDJSON events        |
 
 ### live/ — Real-time Dashboard
 
@@ -89,6 +94,26 @@ via functional options:
 - `CheckNoClobber(path)` — returns `ErrFileExists` if file exists.
 - `ErrExportWriteFailed` — sentinel for all write failures (matchable via `errors.Is`)
 - `ErrFileExists` — wraps `ErrExportWriteFailed`
+
+### ndjson/ — NDJSON Reader
+
+Generic reader for newline-delimited JSON using `encoding/json/v2`. Domain-agnostic:
+consumers pass their own type and validation callback.
+
+```go
+events, err := ndjson.Read(reader, func(lineNum int, evt Event) error { ... })
+```
+
+- `Read[T any](reader, validate)` — parses NDJSON into `[]T` with optional per-line validation
+- Sentinel errors: `ErrEmpty`, `ErrNoEvents`, `ErrOversizedLine` (matchable via `errors.Is`)
+- Consumers re-export sentinels and wrap `Read` with domain-specific validation
+
+### loader/ — Format Detection
+
+Detects whether raw bytes are a JSON report or NDJSON event stream.
+
+- `Detect(data) (Format, error)` — inspects first non-blank line for `"version"` (JSON) vs `"event_type"` (NDJSON)
+- `Format` enum: `FormatAuto`, `FormatJSON`, `FormatNDJSON`
 
 ---
 
