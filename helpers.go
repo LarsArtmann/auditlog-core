@@ -2,6 +2,7 @@ package auditlogcore
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -49,7 +50,14 @@ func CheckNoClobber(path string) error {
 // Writes are atomic: data is written to a temporary file in the same directory,
 // then atomically renamed to the final path. A crash during write leaves the
 // previous file (if any) intact rather than a partial file.
-func WriteToFile(path string, fn func(io.Writer) error) error {
+//
+// The context is checked before the write begins and before the atomic rename.
+// If cancelled, the temp file is cleaned up and ctx.Err() is returned.
+func WriteToFile(ctx context.Context, path string, fn func(io.Writer) error) error {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("%w: cancelled before write: %w", ErrExportWriteFailed, err)
+	}
+
 	dir := filepath.Dir(path)
 
 	tmpFile, err := os.CreateTemp(dir, ".tmp-auditlog-*")
@@ -86,9 +94,13 @@ func WriteToFile(path string, fn func(io.Writer) error) error {
 		return fmt.Errorf("%w: close temp file %q: %w", ErrExportWriteFailed, tmpPath, closeErr)
 	}
 
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("%w: cancelled before rename: %w", ErrExportWriteFailed, err)
+	}
+
 	renameErr := os.Rename(tmpPath, path)
 	if renameErr != nil {
-		return fmt.Errorf("%w: rename %q → %q: %w", ErrExportWriteFailed, tmpPath, path, renameErr)
+		return fmt.Errorf("%w: rename %q -> %q: %w", ErrExportWriteFailed, tmpPath, path, renameErr)
 	}
 
 	cleanup = false

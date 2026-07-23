@@ -17,7 +17,7 @@ func TestWriteToFile_Success(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "output.json")
 
-	err := auditlogcore.WriteToFile(path, func(w io.Writer) error {
+	err := auditlogcore.WriteToFile(t.Context(), path, func(w io.Writer) error {
 		_, writeErr := w.Write([]byte(`{"status":"ok"}`))
 		return writeErr
 	})
@@ -41,7 +41,7 @@ func TestWriteToFile_AtomicRename(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "atomic.json")
 
-	err := auditlogcore.WriteToFile(path, func(w io.Writer) error {
+	err := auditlogcore.WriteToFile(t.Context(), path, func(w io.Writer) error {
 		_, writeErr := w.Write([]byte(`{"atomic":true}`))
 		return writeErr
 	})
@@ -66,7 +66,7 @@ func TestWriteToFile_WriteError(t *testing.T) {
 
 	errWrite := errors.New("write failed")
 
-	err := auditlogcore.WriteToFile(path, func(w io.Writer) error {
+	err := auditlogcore.WriteToFile(t.Context(), path, func(w io.Writer) error {
 		return errWrite
 	})
 	if err == nil {

@@ -10,10 +10,13 @@ Zero-dependency shared infrastructure for audit log live dashboards. Used by
 ```bash
 go test ./... -race          # run all tests (root + live/)
 go test ./... -count=1        # bypass test cache
-golangci-lint run ./...       # lint (no config file; defaults only)
+golangci-lint run ./...       # lint (now uses .golangci.yml matching sibling standards)
 ```
 
 No Makefile, no justfile, no flake.nix — pure `go` toolchain.
+
+A `go.work` workspace at the parent directory links this module with both consumer
+projects (`samber-do-auditlog`, `go-workflow-auditlog`) for local development.
 
 ---
 
@@ -80,8 +83,9 @@ via functional options:
 
 ### root — File Write Helpers
 
-- `WriteToFile(path, fn)` — atomic write via temp file + rename. Uses 64KB
-  `bufio.Writer` buffer. Temp files are cleaned up on error.
+- `WriteToFile(ctx, path, fn)` — atomic write via temp file + rename. Uses 64KB
+  `bufio.Writer` buffer. Temp files are cleaned up on error. Context is checked before
+  write and before rename for cancellation support.
 - `CheckNoClobber(path)` — returns `ErrFileExists` if file exists.
 - `ErrExportWriteFailed` — sentinel for all write failures (matchable via `errors.Is`)
 - `ErrFileExists` — wraps `ErrExportWriteFailed`

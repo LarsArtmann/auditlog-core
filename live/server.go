@@ -67,18 +67,18 @@ type HealthProvider func() HealthInfo
 
 // Server serves the real-time audit dashboard over HTTP.
 type Server struct {
-	hub     *Hub
-	config  Config
+	hub    *Hub
+	config Config
 
 	serverMu   sync.Mutex
 	httpServer *http.Server
 	mux        *http.ServeMux
 
-	reportProvider   ReportProvider
-	snapshotProvider SnapshotProvider
-	completeProvider CompleteProvider
+	reportProvider    ReportProvider
+	snapshotProvider  SnapshotProvider
+	completeProvider  CompleteProvider
 	dashboardProvider DashboardProvider
-	healthProvider   HealthProvider
+	healthProvider    HealthProvider
 
 	dashboardHTML string
 	startTime     time.Time
@@ -178,7 +178,7 @@ func (s *Server) ListenAndServe() error {
 
 	s.startTime = time.Now()
 
-	s.httpServer = &http.Server{ //nolint:exhaustruct // stdlib http.Server with minimal config
+	s.httpServer = &http.Server{
 		Addr:              s.config.Addr,
 		Handler:           s.mux,
 		ReadHeaderTimeout: s.config.ReadHeaderTimeout,
@@ -248,6 +248,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	pfx := s.config.Prefix
 	if r.URL.Path != pfx && r.URL.Path != pfx+"/" {
 		http.NotFound(w, r)
+
 		return
 	}
 
@@ -293,7 +294,9 @@ func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 		Status:   "ok",
 		UptimeS:  time.Since(s.startTime).Seconds(),
 		Clients:  s.hub.ClientCount(),
+		Events:   0,
 		Complete: s.hub.IsComplete(),
+		Dropped:  0,
 	}
 
 	if s.healthProvider != nil {
@@ -345,6 +348,7 @@ func (s *Server) handleSSE(w http.ResponseWriter, r *http.Request) {
 
 		case <-sub.done:
 			s.sendComplete(w, flusher)
+
 			return
 
 		case evt := <-sub.ch:
@@ -352,6 +356,7 @@ func (s *Server) handleSSE(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return
 			}
+
 			flusher.Flush()
 
 		case <-heartbeat.C:
@@ -359,6 +364,7 @@ func (s *Server) handleSSE(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return
 			}
+
 			flusher.Flush()
 		}
 	}
@@ -395,6 +401,7 @@ func (s *Server) sendComplete(w http.ResponseWriter, flusher http.Flusher) {
 	}
 
 	_ = writeSSE(w, "complete", data)
+
 	flusher.Flush()
 }
 

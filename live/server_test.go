@@ -58,10 +58,11 @@ func newTestServer(t *testing.T) *live.Server {
 
 	hub := live.NewHub()
 
-	server := live.New(hub, live.Config{
-		Addr:   ":0",
-		Prefix: testPrefix,
-	},
+	server := live.New(
+		hub, live.Config{
+			Addr:   ":0",
+			Prefix: testPrefix,
+		},
 		live.WithDashboardProvider(func() string { return testDashboardHTML }),
 		live.WithReportProvider(func() ([]byte, error) { return newTestReport(), nil }),
 		live.WithSnapshotProvider(newTestSnapshot),
@@ -173,10 +174,11 @@ func TestServer_CustomPrefix(t *testing.T) {
 	t.Parallel()
 
 	hub := live.NewHub()
-	server := live.New(hub, live.Config{
-		Addr:   ":0",
-		Prefix: "/my/debug",
-	},
+	server := live.New(
+		hub, live.Config{
+			Addr:   ":0",
+			Prefix: "/my/debug",
+		},
 		live.WithDashboardProvider(func() string { return testDashboardHTML }),
 		live.WithReportProvider(func() ([]byte, error) { return newTestReport(), nil }),
 		live.WithSnapshotProvider(newTestSnapshot),
@@ -206,10 +208,11 @@ func TestServer_RootPrefix(t *testing.T) {
 	t.Parallel()
 
 	hub := live.NewHub()
-	server := live.New(hub, live.Config{
-		Addr:   ":0",
-		Prefix: "/",
-	},
+	server := live.New(
+		hub, live.Config{
+			Addr:   ":0",
+			Prefix: "/",
+		},
 		live.WithDashboardProvider(func() string { return testDashboardHTML }),
 		live.WithReportProvider(func() ([]byte, error) { return newTestReport(), nil }),
 		live.WithSnapshotProvider(newTestSnapshot),
