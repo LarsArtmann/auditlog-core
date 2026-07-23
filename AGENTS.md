@@ -21,10 +21,10 @@ No Makefile, no justfile, no flake.nix — pure `go` toolchain.
 
 ### Packages
 
-| Package | Purpose |
-|---------|---------|
+| Package               | Purpose                                                                  |
+| --------------------- | ------------------------------------------------------------------------ |
 | `auditlogcore` (root) | File-write helpers (`WriteToFile`, `CheckNoClobber`) and sentinel errors |
-| `live` | Generic SSE hub + HTTP dashboard server |
+| `live`                | Generic SSE hub + HTTP dashboard server                                  |
 
 ### live/ — Real-time Dashboard
 
@@ -45,22 +45,22 @@ providers.
 The Server has zero domain knowledge. All domain-specific behavior is injected
 via functional options:
 
-| Provider | Purpose |
-|----------|---------|
-| `ReportProvider` | Returns current report as JSON bytes |
-| `SnapshotProvider` | Returns initial SSE snapshot (report + events + metadata + complete flag) |
-| `CompleteProvider` | Returns final SSE complete payload |
-| `DashboardProvider` | Returns the dashboard HTML string |
-| `HealthProvider` | Returns additional health info (events count, dropped count) |
+| Provider            | Purpose                                                                   |
+| ------------------- | ------------------------------------------------------------------------- |
+| `ReportProvider`    | Returns current report as JSON bytes                                      |
+| `SnapshotProvider`  | Returns initial SSE snapshot (report + events + metadata + complete flag) |
+| `CompleteProvider`  | Returns final SSE complete payload                                        |
+| `DashboardProvider` | Returns the dashboard HTML string                                         |
+| `HealthProvider`    | Returns additional health info (events count, dropped count)              |
 
 **HTTP routes** (all under configurable `Config.Prefix`, default `"/"`):
 
-| Route | Method | Behavior |
-|-------|--------|----------|
-| `{prefix}/` | GET | Dashboard HTML (cached at server creation) |
-| `{prefix}/api/report` | GET | Point-in-time report JSON |
-| `{prefix}/api/events` | GET | SSE stream: snapshot → live events → complete |
-| `{prefix}/api/health` | GET | Health JSON (uptime, clients, events, dropped, complete) |
+| Route                 | Method | Behavior                                                 |
+| --------------------- | ------ | -------------------------------------------------------- |
+| `{prefix}/`           | GET    | Dashboard HTML (cached at server creation)               |
+| `{prefix}/api/report` | GET    | Point-in-time report JSON                                |
+| `{prefix}/api/events` | GET    | SSE stream: snapshot → live events → complete            |
+| `{prefix}/api/health` | GET    | Health JSON (uptime, clients, events, dropped, complete) |
 
 **SSE lifecycle:**
 
@@ -72,6 +72,7 @@ via functional options:
    recover via snapshot on reconnect
 
 **Default config values:**
+
 - `Addr: ":0"` (random port)
 - `Prefix: "/"`
 - `ReadHeaderTimeout: 5s`

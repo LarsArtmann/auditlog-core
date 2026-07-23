@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -15,6 +16,11 @@ import (
 
 const testDashboardHTML = `<!DOCTYPE html><html><head><title>test-auditlog Live</title></head>
 <body><span class="live-badge">LIVE</span></body></html>`
+
+// closeBody closes an HTTP response body, discarding the error. Intended for
+// test cleanup where leaked connections are harmless and the error is
+// unrecoverable.
+func closeBody(body io.ReadCloser) { _ = body.Close() }
 
 const testPrefix = "/debug/di"
 
@@ -240,7 +246,7 @@ func TestServer_SSE_SnapshotOnConnect(t *testing.T) {
 	if err != nil {
 		t.Fatalf("SSE connect failed: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp.Body)
 
 	scanner := bufio.NewScanner(resp.Body)
 
@@ -297,7 +303,7 @@ func TestServer_SSE_LiveEventDelivery(t *testing.T) {
 	if err != nil {
 		t.Fatalf("SSE connect failed: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp.Body)
 
 	scanner := bufio.NewScanner(resp.Body)
 
@@ -359,7 +365,7 @@ func TestServer_SSE_CompleteEvent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("SSE connect failed: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp.Body)
 
 	scanner := bufio.NewScanner(resp.Body)
 
@@ -398,13 +404,13 @@ func TestServer_SSE_FanOut(t *testing.T) {
 	if err != nil {
 		t.Fatalf("client 1 connect failed: %v", err)
 	}
-	defer resp1.Body.Close()
+	defer closeBody(resp1.Body)
 
 	resp2, err := http.Get(ts.URL + testPrefix + "/api/events")
 	if err != nil {
 		t.Fatalf("client 2 connect failed: %v", err)
 	}
-	defer resp2.Body.Close()
+	defer closeBody(resp2.Body)
 
 	scanner1 := bufio.NewScanner(resp1.Body)
 	scanner2 := bufio.NewScanner(resp2.Body)
@@ -442,7 +448,7 @@ func TestServer_GracefulShutdown(t *testing.T) {
 	if err != nil {
 		t.Fatalf("health check failed: %v", err)
 	}
-	resp.Body.Close()
+	closeBody(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
