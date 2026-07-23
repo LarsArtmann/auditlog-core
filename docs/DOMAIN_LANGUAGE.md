@@ -38,13 +38,13 @@ completion still receive the snapshot (with `complete: true`) but no live events
 
 The Server has no domain knowledge. All domain-specific behavior is injected:
 
-| Provider            | Responsibility                                              |
-| ------------------- | ---------------------------------------------------------- |
-| ReportProvider      | Returns current report as JSON bytes                       |
-| SnapshotProvider    | Returns initial SSE snapshot (report + events + metadata)  |
-| CompleteProvider    | Returns final SSE complete payload                         |
-| DashboardProvider   | Returns the dashboard HTML string (cached at construction)  |
-| HealthProvider      | Returns additional health info (events count, dropped)     |
+| Provider          | Responsibility                                             |
+| ----------------- | ---------------------------------------------------------- |
+| ReportProvider    | Returns current report as JSON bytes                       |
+| SnapshotProvider  | Returns initial SSE snapshot (report + events + metadata)  |
+| CompleteProvider  | Returns final SSE complete payload                         |
+| DashboardProvider | Returns the dashboard HTML string (cached at construction) |
+| HealthProvider    | Returns additional health info (events count, dropped)     |
 
 ## SSE Lifecycle
 
