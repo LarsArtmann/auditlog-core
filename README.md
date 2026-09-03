@@ -1,95 +1,29 @@
-# auditlog-core
+# auditlog-core — ARCHIVED
 
-> Zero-dependency shared infrastructure for audit log live dashboards in Go.
+> **This repository is archived and read-only.** It has zero consumers and is
+> fully superseded by smaller, actively maintained libraries. Do not depend on it.
 
-## Why
+## Status
 
-Audit log libraries (`go-workflow-auditlog`, `saber-do-auditlog`) each need
-real-time SSE dashboards with snapshot recovery, heartbeat keepalive, and
-lifecycle management. Without a shared core, this logic is duplicated and
-diverges. `auditlog-core` extracts the transport layer (SSE hub, HTTP server,
-atomic file writes) into a domain-agnostic library with zero external
-dependencies.
+`auditlog-core` was a 2026-07-23 experiment to extract shared infrastructure
+(SSE dashboard, NDJSON reading, atomic file writes) from
+[`go-workflow-auditlog`](https://github.com/LarsArtmann/go-workflow-auditlog)
+and [`samber-do-auditlog`](https://github.com/LarsArtmann/samber-do-auditlog)
+into one module. Both consumers adopted it the same day and dropped it hours
+later in favor of finer-grained libraries. It was never tagged or published,
+so `go get` never worked.
 
-## Installation
+## Where the code lives now
 
-```bash
-go get github.com/larsartmann/auditlog-core
-```
+| Was here                      | Successor                                        |
+| ----------------------------- | ------------------------------------------------ |
+| `live/` (SSE hub + server)    | [`go-sse`](https://github.com/LarsArtmann/go-sse) |
+| `ndjson/` (NDJSON reader)     | [`go-ndjson`](https://github.com/LarsArtmann/go-ndjson) |
+| `loader/` (format detection)  | [`go-ndjson`](https://github.com/LarsArtmann/go-ndjson) |
+| `WriteToFile` / `CheckNoClobber` | [`go-atomic-write`](https://github.com/LarsArtmann/go-atomic-write) |
 
-Requires Go 1.26+. No external dependencies.
-
-## Quick start
-
-```go
-package main
-
-import (
-    "log"
-
-    "github.com/larsartmann/auditlog-core/live"
-)
-
-func main() {
-    hub := live.NewHub()
-
-    server := live.New(hub, live.Config{Addr: ":8080"},
-        live.WithDashboardProvider(func() string {
-            return `<html><body><h1>Live Dashboard</h1></body></html>`
-        }),
-        live.WithReportProvider(func() ([]byte, error) {
-            return []byte(`{"status":"running"}`), nil
-        }),
-        live.WithSnapshotProvider(func(isComplete bool) (json.RawMessage, error) {
-            return json.Marshal(map[string]any{
-                "report":   json.RawMessage(`{"status":"running"}`),
-                "events":   []any{},
-                "complete": isComplete,
-            })
-        }),
-    )
-
-    log.Fatal(server.ListenAndServe())
-}
-```
-
-## Usage
-
-### Broadcasting events
-
-```go
-// Push an event to all connected SSE clients
-server.OnEvent(json.RawMessage(`{"type":"step_completed","step":"validate"}`))
-
-// Signal lifecycle completion (sends final report, closes connections)
-server.SignalComplete()
-```
-
-### Atomic file exports
-
-```go
-import auditlogcore "github.com/larsartmann/auditlog-core"
-
-// Guard against accidental overwrites
-if err := auditlogcore.CheckNoClobber(path); err != nil {
-    return err
-}
-
-// Atomic write: temp file + rename (crash-safe)
-err := auditlogcore.WriteToFile(path, func(w io.Writer) error {
-    _, err := w.Write(reportJSON)
-    return err
-})
-```
-
-### Server endpoints
-
-| Endpoint              | Method | Description                                    |
-| --------------------- | ------ | ---------------------------------------------- |
-| `{prefix}/`           | GET    | Dashboard HTML (cached at server creation)     |
-| `{prefix}/api/report` | GET    | Current report as JSON                         |
-| `{prefix}/api/events` | GET    | SSE stream: snapshot, live events, completion  |
-| `{prefix}/api/health` | GET    | Health JSON (uptime, clients, events, dropped) |
+If you need audit log live dashboards, NDJSON event streams, or atomic file
+writes in Go, use those libraries directly.
 
 ## License
 
