@@ -1,7 +1,14 @@
 # AGENTS.md — auditlog-core
 
-Zero-dependency shared infrastructure for audit log live dashboards. Used by
-`go-workflow-auditlog` and `saber-do-auditlog` as a library dependency.
+Zero-dependency shared infrastructure for audit log live dashboards.
+
+> **Status (verified 2026-09-03): ZERO consumers.** Both `go-workflow-auditlog`
+> and `samber-do-auditlog` adopted this module on 2026-07-23 and dropped it the
+> same day, replacing it with finer-grained libraries: `go-sse` (live SSE hub),
+> `go-ndjson` (NDJSON reader), `go-atomic-write` (atomic file writes). This module
+> was never tagged/published. No project under ~/projects imports it. See
+> `samber-do-auditlog/docs/planning/2026-07-23_13-36_auditlog-core-extraction.md`
+> for the extraction history. Candidate for archiving.
 
 ---
 
@@ -18,8 +25,8 @@ GOEXPERIMENT=jsonv2 golangci-lint run ./... # lint (.golangci.yml)
 
 No Makefile, no justfile, no flake.nix — pure `go` toolchain.
 
-A `go.work` workspace at the parent directory links this module with both consumer
-projects (`samber-do-auditlog`, `go-workflow-auditlog`) for local development.
+No `go.work` workspace exists (a parent-directory workspace mentioned in older
+docs was removed when consumers dropped this dependency).
 
 ---
 
